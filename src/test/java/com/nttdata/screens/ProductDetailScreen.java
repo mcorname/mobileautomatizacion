@@ -17,7 +17,6 @@ public class ProductDetailScreen {
 
     // Localizadores del detalle del producto
     private final By tituloProducto = By.id("com.saucelabs.mydemoapp.android:id/productTV");
-    private final By precioProducto = By.id("com.saucelabs.mydemoapp.android:id/priceTV");
     private final By btnPlus = By.id("com.saucelabs.mydemoapp.android:id/plusIV");
     private final By btnMinus = By.id("com.saucelabs.mydemoapp.android:id/minusIV");
     private final By cantidadTexto = By.id("com.saucelabs.mydemoapp.android:id/noTV");
@@ -27,48 +26,48 @@ public class ProductDetailScreen {
         System.out.println("[ProductDetailScreen] Validando pantalla de detalle del producto...");
         try {
             AndroidDriver driver = getDriver();
-            WebDriverWait wait = new WebDriverWait(driver, TIMEOUT);
+            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(5));
 
-            WebElement titulo = wait.until(ExpectedConditions.visibilityOfElementLocated(tituloProducto));
-            System.out.println("[ProductDetailScreen] Titulo en detalle: " + titulo.getText());
-            return titulo.isDisplayed();
+            // Confirmar que estamos en la pantalla de detalle verificando el boton de agregar
+            WebElement boton = wait.until(ExpectedConditions.visibilityOfElementLocated(btnAddToCart));
+            return boton != null && boton.isDisplayed();
         } catch (Exception e) {
-            System.out.println("[ProductDetailScreen] No se encontro titulo de detalle: " + e.getMessage());
+            System.out.println("[ProductDetailScreen] No se confirmo pantalla de detalle: " + e.getMessage());
             return false;
         }
     }
 
     public void seleccionarUnidades(int unidadesDeseadas) {
         System.out.println("[ProductDetailScreen] Configurando " + unidadesDeseadas + " unidades...");
+        if (unidadesDeseadas <= 1) {
+            System.out.println("[ProductDetailScreen] La cantidad por defecto ya es 1.");
+            return;
+        }
+
         AndroidDriver driver = getDriver();
         WebDriverWait wait = new WebDriverWait(driver, TIMEOUT);
 
-        // Si la pantalla requiere scroll hacia abajo para ver los botones de cantidad y agregar al carrito:
+        // Desplazar hacia abajo si el boton de incrementar no esta en pantalla
         try {
             driver.findElement(AppiumBy.androidUIAutomator(
                     "new UiScrollable(new UiSelector().scrollable(true)).scrollIntoView(" +
-                            "new UiSelector().resourceId(\"com.saucelabs.mydemoapp.android:id/cartBt\"))"
+                            "new UiSelector().resourceId(\"com.saucelabs.mydemoapp.android:id/plusIV\"))"
             ));
         } catch (Exception ignored) {
         }
 
-        // Obtener la cantidad actual (generalmente inicia en 1)
-        int cantidadActual = obtenerCantidadActual();
-        System.out.println("[ProductDetailScreen] Cantidad inicial: " + cantidadActual);
-
-        // Incrementar pulsando el boton '+' hasta alcanzar las unidades deseadas
         WebElement botonPlus = wait.until(ExpectedConditions.elementToBeClickable(btnPlus));
-        while (cantidadActual < unidadesDeseadas) {
-            System.out.println("[ProductDetailScreen] Clic en boton '+' para sumar unidad...");
+        int clicks = unidadesDeseadas - 1;
+        for (int i = 0; i < clicks; i++) {
+            System.out.println("[ProductDetailScreen] Clic en boton '+' (" + (i + 1) + " de " + clicks + ")");
             botonPlus.click();
-            cantidadActual++;
             try {
-                Thread.sleep(500); // Breve pausa para animacion de UI
+                Thread.sleep(400);
             } catch (InterruptedException ignored) {
             }
         }
 
-        System.out.println("[ProductDetailScreen] Unidades seleccionadas correctamente: " + obtenerCantidadActual());
+        System.out.println("[ProductDetailScreen] Unidades seleccionadas: " + obtenerCantidadActual());
     }
 
     public int obtenerCantidadActual() {
@@ -86,17 +85,25 @@ public class ProductDetailScreen {
         AndroidDriver driver = getDriver();
         WebDriverWait wait = new WebDriverWait(driver, TIMEOUT);
 
+        // Desplazar para asegurar visibilidad del boton
+        try {
+            driver.findElement(AppiumBy.androidUIAutomator(
+                    "new UiScrollable(new UiSelector().scrollable(true)).scrollIntoView(" +
+                            "new UiSelector().resourceId(\"com.saucelabs.mydemoapp.android:id/cartBt\"))"
+            ));
+        } catch (Exception ignored) {
+        }
+
         try {
             WebElement botonAgregar = wait.until(ExpectedConditions.elementToBeClickable(btnAddToCart));
             botonAgregar.click();
-            System.out.println("[ProductDetailScreen] Producto agregado satisfactoriamente.");
+            System.out.println("[ProductDetailScreen] Producto agregado con exito.");
         } catch (Exception e) {
-            // Intento alternativo por texto
-            WebElement botonPorTexto = wait.until(ExpectedConditions.elementToBeClickable(
+            WebElement botonAlt = wait.until(ExpectedConditions.elementToBeClickable(
                     By.xpath("//android.widget.Button[@text='Add to cart' or contains(@content-desc, 'Add to cart')]")
             ));
-            botonPorTexto.click();
-            System.out.println("[ProductDetailScreen] Producto agregado por texto alternativo.");
+            botonAlt.click();
+            System.out.println("[ProductDetailScreen] Producto agregado mediante boton alternativo.");
         }
     }
 }

@@ -17,7 +17,6 @@ public class CatalogScreen {
 
     // Localizadores de la galeria de productos
     private final By tituloProductos = By.id("com.saucelabs.mydemoapp.android:id/productTV");
-    private final By listaProductos = By.id("com.saucelabs.mydemoapp.android:id/productRV");
     private final By btnCarrito = By.id("com.saucelabs.mydemoapp.android:id/cartRL");
     private final By iconoCarrito = By.id("com.saucelabs.mydemoapp.android:id/cartIV");
     private final By badgeCarrito = By.id("com.saucelabs.mydemoapp.android:id/cartTV");
@@ -28,11 +27,15 @@ public class CatalogScreen {
             AndroidDriver driver = getDriver();
             WebDriverWait wait = new WebDriverWait(driver, TIMEOUT);
 
-            // Espera explicita a que el titulo o la lista de productos esten visibles
-            WebElement titulo = wait.until(ExpectedConditions.visibilityOfElementLocated(tituloProductos));
-            boolean visible = titulo.isDisplayed();
-            System.out.println("[CatalogScreen] Galeria cargada correctamente: " + visible);
-            return visible;
+            try {
+                WebElement titulo = wait.until(ExpectedConditions.visibilityOfElementLocated(tituloProductos));
+                boolean visible = titulo.isDisplayed();
+                System.out.println("[CatalogScreen] Galeria cargada correctamente: " + visible);
+                return visible;
+            } catch (Exception e) {
+                WebElement alt = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//*[@text='Products' or @content-desc='App logo and name']")));
+                return alt.isDisplayed();
+            }
         } catch (Exception e) {
             System.out.println("[CatalogScreen] Error esperando carga de galeria: " + e.getMessage());
             return false;
@@ -44,39 +47,44 @@ public class CatalogScreen {
         AndroidDriver driver = getDriver();
         WebDriverWait wait = new WebDriverWait(driver, TIMEOUT);
 
-        // Limpieza del nombre para busquedas flexibles (ej: con o sin guion)
         String textoLimpio = nombreProducto.replace(" - ", " ").trim();
         String palabraClave = textoLimpio.replace("Sauce Labs ", "").trim();
 
         WebElement elementoProducto = null;
 
-        // 1. Intentar ubicarlo si ya esta visible en pantalla
+        // 1. Buscar la imagen (ImageView) del producto que es el elemento que responde al clic
         try {
-            By locator = By.xpath("//android.widget.TextView[@text='" + nombreProducto + "' or @text='" + textoLimpio + "' or contains(@text, '" + palabraClave + "')]");
+            By locator = By.xpath("//android.widget.ImageView[@content-desc='" + nombreProducto + "' or @content-desc='" + textoLimpio + "' or contains(@content-desc, '" + palabraClave + "')]");
             elementoProducto = driver.findElement(locator);
-        } catch (Exception e) {
-            System.out.println("[CatalogScreen] Producto no visible a primera vista, realizando scroll...");
+        } catch (Exception ignored) {
         }
 
-        // 2. Si no esta visible, hacer scroll mediante UiScrollable
+        // 2. Si no esta visible inmediatamente, hacer scroll con UiScrollable
         if (elementoProducto == null) {
             try {
                 elementoProducto = driver.findElement(AppiumBy.androidUIAutomator(
                         "new UiScrollable(new UiSelector().scrollable(true)).scrollIntoView(" +
-                                "new UiSelector().textContains(\"" + palabraClave + "\"))"
+                                "new UiSelector().descriptionContains(\"" + palabraClave + "\"))"
                 ));
             } catch (Exception e) {
-                // Alternativa de busqueda por texto completo
-                elementoProducto = driver.findElement(AppiumBy.androidUIAutomator(
-                        "new UiScrollable(new UiSelector().scrollable(true)).scrollIntoView(" +
-                                "new UiSelector().textContains(\"" + nombreProducto + "\"))"
-                ));
+                try {
+                    elementoProducto = driver.findElement(AppiumBy.androidUIAutomator(
+                            "new UiScrollable(new UiSelector().scrollable(true)).scrollIntoView(" +
+                                    "new UiSelector().textContains(\"" + palabraClave + "\"))"
+                    ));
+                } catch (Exception ex) {
+                    System.out.println("[CatalogScreen] No se encontro producto por scroll: " + ex.getMessage());
+                }
             }
         }
 
-        // 3. Hacer clic en el producto seleccionado
-        wait.until(ExpectedConditions.elementToBeClickable(elementoProducto)).click();
-        System.out.println("[CatalogScreen] Clic realizado en el producto: " + nombreProducto);
+        // 3. Hacer clic en el elemento del producto
+        if (elementoProducto != null) {
+            wait.until(ExpectedConditions.elementToBeClickable(elementoProducto)).click();
+            System.out.println("[CatalogScreen] Clic realizado en el producto: " + nombreProducto);
+        } else {
+            throw new RuntimeException("No fue posible localizar el producto: " + nombreProducto);
+        }
     }
 
     public void abrirCarrito() {
@@ -88,7 +96,6 @@ public class CatalogScreen {
             WebElement btn = wait.until(ExpectedConditions.elementToBeClickable(btnCarrito));
             btn.click();
         } catch (Exception e) {
-            // Si no responde por cartRL, intentar por cartIV
             WebElement icono = wait.until(ExpectedConditions.elementToBeClickable(iconoCarrito));
             icono.click();
         }

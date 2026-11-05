@@ -35,6 +35,7 @@ public class AppConfigScreen {
             options.setApp(obtenerPropiedad(properties, "app"));
             options.setAppPackage(obtenerPropiedad(properties, "appPackage"));
             options.setAppActivity(obtenerPropiedad(properties, "appActivity"));
+            options.setAppWaitActivity(properties.getProperty("appWaitActivity", "*"));
             options.setNoReset(Boolean.parseBoolean(properties.getProperty("noReset", "false")));
             options.setAutoGrantPermissions(Boolean.parseBoolean(properties.getProperty("autoGrantPermissions", "true")));
 
@@ -45,6 +46,12 @@ public class AppConfigScreen {
             System.out.println("[AppConfigScreen] Conectando con servidor Appium: " + appiumUrl);
             driver = new AndroidDriver(new URL(appiumUrl), options);
             driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(5));
+
+            // Asegurar que no hayan paneles del sistema o notificaciones bloqueando la pantalla
+            try {
+                Runtime.getRuntime().exec("adb shell cmd statusbar collapse").waitFor();
+            } catch (Exception ignored) {
+            }
 
             System.out.println("[AppConfigScreen] Sesion iniciada con exito. SessionId: " + driver.getSessionId());
         } catch (Exception e) {

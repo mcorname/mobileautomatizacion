@@ -20,7 +20,8 @@ public class SauceLabsSteps {
         catalogScreen.seleccionarProducto(nombreProducto);
 
         System.out.println("[SauceLabsSteps] Paso 2: Validar pantalla de detalle");
-        productDetailScreen.validarPantallaDetalle(nombreProducto);
+        boolean detalleCargado = productDetailScreen.validarPantallaDetalle(nombreProducto);
+        org.junit.Assert.assertTrue("Defecto detectado en el APK: Al seleccionar el producto '" + nombreProducto + "', la pantalla de detalle no se abrio debido a una falla en la aplicacion.", detalleCargado);
 
         System.out.println("[SauceLabsSteps] Paso 3: Ajustar cantidad a " + unidades + " unidades");
         productDetailScreen.seleccionarUnidades(unidades);

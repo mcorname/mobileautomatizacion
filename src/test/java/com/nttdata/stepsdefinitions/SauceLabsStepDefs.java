@@ -9,10 +9,6 @@ import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
-import io.cucumber.java.es.Cuando;
-import io.cucumber.java.es.Dado;
-import io.cucumber.java.es.Entonces;
-import io.cucumber.java.es.Y;
 import org.junit.Assert;
 
 public class SauceLabsStepDefs {
@@ -30,7 +26,6 @@ public class SauceLabsStepDefs {
     }
 
     @Given("estoy en la aplicación de SauceLabs")
-    @Dado("estoy en la aplicación de SauceLabs")
     public void estoyEnLaAplicacionDeSauceLabs() {
         System.out.println("[SauceLabsStepDefs] Iniciar SauceLabs");
         appConfigSteps.iniciarAplicacion("saucelabs.properties");
@@ -38,7 +33,6 @@ public class SauceLabsStepDefs {
     }
 
     @And("valido que carguen correctamente los productos en la galeria")
-    @Y("valido que carguen correctamente los productos en la galeria")
     public void validoQueCarguenCorrectamenteLosProductosEnLaGaleria() {
         System.out.println("[SauceLabsStepDefs] Validar carga de galeria");
         boolean cargaron = sauceLabsSteps.validarGaleriaProductos();
@@ -47,7 +41,6 @@ public class SauceLabsStepDefs {
     }
 
     @When("agrego {int} del siguiente producto {string}")
-    @Cuando("agrego {int} del siguiente producto {string}")
     public void agregoUnidadesDelSiguienteProducto(int unidades, String producto) {
         System.out.println("[SauceLabsStepDefs] Agregar " + unidades + " unidad(es) de " + producto);
         this.productoActual = producto;
@@ -58,7 +51,6 @@ public class SauceLabsStepDefs {
     }
 
     @Then("valido el carrito de compra actualice correctamente")
-    @Entonces("valido el carrito de compra actualice correctamente")
     public void validoElCarritoDeCompraActualiceCorrectamente() {
         System.out.println("[SauceLabsStepDefs] Validar actualizacion del carrito");
         boolean actualizado = sauceLabsSteps.validarCarritoActualizado(productoActual, unidadesActuales);
