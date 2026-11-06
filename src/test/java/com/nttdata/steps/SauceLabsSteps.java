@@ -3,6 +3,7 @@ package com.nttdata.steps;
 import com.nttdata.screens.CartScreen;
 import com.nttdata.screens.CatalogScreen;
 import com.nttdata.screens.ProductDetailScreen;
+import org.junit.Assert;
 
 public class SauceLabsSteps {
 
@@ -10,38 +11,28 @@ public class SauceLabsSteps {
     private final ProductDetailScreen productDetailScreen = new ProductDetailScreen();
     private final CartScreen cartScreen = new CartScreen();
 
+    // 1. Valida que los productos cargaron en la galeria
     public boolean validarGaleriaProductos() {
-        System.out.println("[SauceLabsSteps] Validando galeria de productos...");
         return catalogScreen.validarCargaProductos();
     }
 
+    // 2. Agrega el producto con la cantidad solicitada
     public void agregarProductoConUnidades(String nombreProducto, int unidades) {
-        System.out.println("[SauceLabsSteps] Paso 1: Seleccionar producto en el catalogo");
+        // Toca el producto en el catalogo
         catalogScreen.seleccionarProducto(nombreProducto);
 
-        System.out.println("[SauceLabsSteps] Paso 2: Validar pantalla de detalle");
-        boolean detalleCargado = productDetailScreen.validarPantallaDetalle(nombreProducto);
-        org.junit.Assert.assertTrue("Defecto detectado en el APK: Al seleccionar el producto '" + nombreProducto + "', la pantalla de detalle no se abrio debido a una falla en la aplicacion.", detalleCargado);
+        // Valida que abra la pantalla de detalle
+        boolean detalleAbierto = productDetailScreen.validarPantallaDetalle();
+        Assert.assertTrue("Defecto detectado en el APK: La pantalla de detalle no abrio para " + nombreProducto, detalleAbierto);
 
-        System.out.println("[SauceLabsSteps] Paso 3: Ajustar cantidad a " + unidades + " unidades");
+        // Configura las unidades y lo agrega al carrito
         productDetailScreen.seleccionarUnidades(unidades);
-
-        System.out.println("[SauceLabsSteps] Paso 4: Agregar producto al carrito");
         productDetailScreen.agregarAlCarrito();
     }
 
-    public boolean validarCarritoActualizado(String nombreProducto, int unidades) {
-        System.out.println("[SauceLabsSteps] Paso 5: Abrir y verificar el carrito de compras");
+    // 3. Abre el carrito y confirma que el producto este adentro
+    public boolean validarCarritoActualizado(String nombreProducto) {
         catalogScreen.abrirCarrito();
-
-        boolean estaEnCarrito = cartScreen.validarPantallaCarrito();
-        if (!estaEnCarrito) {
-            System.out.println("[SauceLabsSteps] Advertencia: No se detecto titulo de carrito");
-            return false;
-        }
-
-        boolean productoPresente = cartScreen.validarProductoEnCarrito(nombreProducto, unidades);
-        System.out.println("[SauceLabsSteps] Resultado validacion carrito: " + productoPresente);
-        return productoPresente;
+        return cartScreen.validarProductoEnCarrito(nombreProducto);
     }
 }

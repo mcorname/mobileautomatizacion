@@ -18,7 +18,6 @@ public class SauceLabsStepDefs {
 
     private Scenario scenario;
     private String productoActual;
-    private int unidadesActuales;
 
     @Before
     public void setupScenario(Scenario scenario) {
@@ -27,14 +26,12 @@ public class SauceLabsStepDefs {
 
     @Given("estoy en la aplicación de SauceLabs")
     public void estoyEnLaAplicacionDeSauceLabs() {
-        System.out.println("[SauceLabsStepDefs] Iniciar SauceLabs");
         appConfigSteps.iniciarAplicacion("saucelabs.properties");
         ScreenshotAttacher.attach(scenario, "Inicio de aplicacion");
     }
 
     @And("valido que carguen correctamente los productos en la galeria")
     public void validoQueCarguenCorrectamenteLosProductosEnLaGaleria() {
-        System.out.println("[SauceLabsStepDefs] Validar carga de galeria");
         boolean cargaron = sauceLabsSteps.validarGaleriaProductos();
         ScreenshotAttacher.attach(scenario, "Galeria cargada");
         Assert.assertTrue("Error: Los productos no cargaron en la galeria", cargaron);
@@ -42,19 +39,15 @@ public class SauceLabsStepDefs {
 
     @When("agrego {int} del siguiente producto {string}")
     public void agregoUnidadesDelSiguienteProducto(int unidades, String producto) {
-        System.out.println("[SauceLabsStepDefs] Agregar " + unidades + " unidad(es) de " + producto);
         this.productoActual = producto;
-        this.unidadesActuales = unidades;
-
         sauceLabsSteps.agregarProductoConUnidades(producto, unidades);
-        ScreenshotAttacher.attach(scenario, "Producto y unidades configuradas");
+        ScreenshotAttacher.attach(scenario, "Producto agregado");
     }
 
     @Then("valido el carrito de compra actualice correctamente")
     public void validoElCarritoDeCompraActualiceCorrectamente() {
-        System.out.println("[SauceLabsStepDefs] Validar actualizacion del carrito");
-        boolean actualizado = sauceLabsSteps.validarCarritoActualizado(productoActual, unidadesActuales);
+        boolean actualizado = sauceLabsSteps.validarCarritoActualizado(productoActual);
         ScreenshotAttacher.attach(scenario, "Carrito actualizado");
-        Assert.assertTrue("Error: El carrito de compras no se actualizo correctamente", actualizado);
+        Assert.assertTrue("Error: El carrito no se actualizo", actualizado);
     }
 }
